@@ -23,122 +23,117 @@ GRADING CRITERIA:
 """
 
 import maya.cmds as cmds
+import math
 
-
+#This line of code will give the buildings geometry and make sure they don't fall below the coordinate plane
 def create_building(width=4, height=8, depth=4, position=(0, 0, 0)):
-    """Create a simple building from a cube, placed on the ground plane.
+    building = cmds.polyCube(w=width, h=height, d=depth)[0]
+    pos_x = position[0]
+    pos_y = position[1]
+    pos_z = position[2]
+    
+    cmds.move(pos_x, pos_y + (height / 2.0), pos_z, building)
+    return building
 
-    The building is a single scaled cube whose base sits at ground level
-    (y = 0) at the given position.
+#This line of code will make the tall trees that will go in my scene
+def create_tree(trunk_radius=0.3, trunk_height=3, canopy_radius=2, position=(0, 0, 0)):
+    trunk = cmds.polyCylinder(r=trunk_radius, h=trunk_height, name="trunk")[0]
+    cmds.move(0, trunk_height / 2.0, 0, trunk)
+    canopy = cmds.polySphere(r= canopy_radius, name="canopy")[0]
+    cmds.move(0, trunk_height, 0, canopy)
+    #This Line of code makes sure maya reads these two objects as one 
+    tall_tree = cmds.group(trunk, canopy, n="tall_tree")
 
-    Args:
-        width (float): Width of the building along the X axis.
-        height (float): Height of the building along the Y axis.
-        depth (float): Depth of the building along the Z axis.
-        position (tuple): (x, y, z) ground-level position. The building
-            base will rest at this point; y is typically 0.
+    pos_x = position[0]
+    pos_y = position[1]
+    pos_z = position[2]
 
-    Returns:
-        str: The name of the created building transform node.
-    """
-    # TODO: Implement this function.
-    #   1. Create a polyCube with the given width, height, and depth.
-    #   2. Move it so its base sits on the ground at 'position'.
-    #      Hint: offset Y by height / 2.0.
-    #   3. Return the object name.
-    pass
+    cmds.move(pos_x, pos_y, pos_z, tall_tree)
 
+    return tall_tree
 
-def create_tree(trunk_radius=0.3, trunk_height=3, canopy_radius=2,
-                position=(0, 0, 0)):
-    """Create a simple tree using a cylinder trunk and a sphere canopy.
-
-    Args:
-        trunk_radius (float): Radius of the cylindrical trunk.
-        trunk_height (float): Height of the trunk cylinder.
-        canopy_radius (float): Radius of the sphere used for the canopy.
-        position (tuple): (x, y, z) ground-level position for the tree base.
-
-    Returns:
-        str: The name of a group node containing the trunk and canopy.
-    """
-    # TODO: Implement this function.
-    #   1. Create a polyCylinder for the trunk and position it.
-    #   2. Create a polySphere for the canopy, positioned on top of the trunk.
-    #   3. Group trunk and canopy together using cmds.group().
-    #   4. Move the group to 'position'.
-    #   5. Return the group name.
-    pass
-
-
-def create_fence(length=10, height=1.5, post_count=6, position=(0, 0, 0)):
-    """Create a simple fence made of posts and rails.
-
-    The fence runs along the X axis starting at the given position.
-
-    Args:
-        length (float): Total length of the fence along the X axis.
-        height (float): Height of the fence posts.
-        post_count (int): Number of vertical posts (must be >= 2).
-        position (tuple): (x, y, z) starting position of the fence.
-
-    Returns:
-        str: The name of a group node containing all fence parts.
-    """
-    # TODO: Implement this function.
-    #   1. Calculate spacing between posts: length / (post_count - 1).
-    #   2. Loop to create 'post_count' thin, tall cubes as posts.
-    #   3. Create a long, thin cube as a horizontal rail connecting them.
-    #   4. Group everything and move to 'position'.
-    #   5. Return the group name.
-    pass
+#This line of code will create a fence that will go around the buildings and trees, kind of
+def create_fence(num_posts=5, spacing=1.5, position=(0, 0, 0)):
+    slats = []
+    
+    for i in range(num_posts):
+        slat = cmds.polyCube(w=0.1, h=1.5, d=0.6, name=f"slat_{i}")[0]
+        cmds.move(i * spacing, 0.75, 0, slat)
+        slats.append(slat)
+    
+    total_length = spacing * (num_posts - 1)
+    rail = cmds.polyCube(w=total_length, h=0.1, d=0.2, name="fence_rail")[0]
+    cmds.move(total_length / 2.0, 1.0, 0, rail)
+    slats.append(rail)
+        
+    fence = cmds.group(slats, n="fence_grp")
+    
+    pos_x = position[0]
+    pos_y = position[1]
+    pos_z = position[2]
+    
+    cmds.move(pos_x, pos_y, pos_z, fence)
+    
+    return fence
 
 
+#This creates a lamp post from a sphere and a cylinder
 def create_lamp_post(pole_height=5, light_radius=0.5, position=(0, 0, 0)):
-    """Create a street lamp using a cylinder pole and a sphere light.
+    
+    post = cmds.polyCylinder(r=0.1, h=pole_height, name="lamp_pole")[0]
+    cmds.move(0, pole_height / 2.0, 0, post)
+    bulb = cmds.polySphere(r=light_radius, name="lamp_bulb")[0]
+    cmds.move(0, pole_height, 0, bulb)
 
-    Args:
-        pole_height (float): Height of the lamp pole.
-        light_radius (float): Radius of the sphere representing the light.
-        position (tuple): (x, y, z) ground-level position.
+    Lamp = cmds.group(post, bulb, n="lamp_post")
+    pos_x, pos_y, pos_z = position
+    cmds.move(pos_x, pos_y, pos_z, Lamp)
 
-    Returns:
-        str: The name of a group node containing the pole and light.
-    """
-    # TODO: Implement this function.
-    #   1. Create a thin polyCylinder for the pole.
-    #   2. Create a polySphere for the light, placed at the top of the pole.
-    #   3. Group them, move to 'position', and return the group name.
-    pass
+    return Lamp
+#This will create some rough fencing for around all of my scene
+def place_in_circle(create_func, count=8, radius=10, center=(0, 0, 0)):
+    results = []
+    for i in range(count):
+        # Calculate angle and coordinates
+        angle = (2 * math.pi / count) * i
+        x = center[0] + math.cos(angle) * radius
+        z = center[2] + math.sin(angle) * radius
+        
+        # Call the function using the position tuple
+        result = create_func(position=(x, center[1], z))
+        results.append(result)
+    return results
 
+def create_fountain(radius=1, position=(0, 0, 0)):
+    #This will create the base of our fountain
+    base = cmds.polyTorus(r=radius, sectionRadius=0.4, name="fountain_base")[0]
+    cmds.move(0, 0.2, 0, base)
+    #This will create to top or nozel of the fountain
+    top = cmds.polyCone(r=radius * 0.4, h=1.5, name="fountain_top")[0]
+    cmds.move(0, 0.75, 0, top)
 
-def place_in_circle(create_func, count=8, radius=10, center=(0, 0, 0),
-                     **kwargs):
-    """Place objects created by 'create_func' in a circular arrangement.
+    fountain = cmds.group(base, top, n="fountain")
+    pos_x, pos_y, pos_z = position
+    cmds.move(pos_x, pos_y, pos_z, fountain)
+    return fountain
 
-    This is a higher-order function: it takes another function as an
-    argument and calls it repeatedly to place objects around a circle.
+# Clear scene before running
+cmds.file(new=True, force=True)
 
-    Args:
-        create_func (callable): A function from this module (e.g.,
-            create_tree) that accepts a 'position' keyword argument
-            and returns an object name.
-        count (int): Number of objects to place around the circle.
-        radius (float): Radius of the circle.
-        center (tuple): (x, y, z) center of the circle.
-        **kwargs: Additional keyword arguments passed to create_func
-            (e.g., trunk_height=4).
+# This makes a ring of trees
+place_in_circle(create_tree, count=10, radius=10, center=(0, 0, 5))
 
-    Returns:
-        list: A list of object/group names created by create_func.
-    """
-    # TODO: Implement this function.
-    #   1. Import the math module (at the top of the file or here).
-    #   2. Loop 'count' times. For each iteration:
-    #       a. Calculate the angle: angle = 2 * math.pi * i / count
-    #       b. Calculate x = center[0] + radius * math.cos(angle)
-    #       c. Calculate z = center[2] + radius * math.sin(angle)
-    #       d. Call create_func(position=(x, center[1], z), **kwargs)
-    #       e. Append the returned name to a results list.
-    #   3. Return the results list.
-    pass
+#This makes ring of lampposts
+place_in_circle(create_lamp_post, count=6, radius=13, center=(0, 0, 5))
+
+#Makes a ring of buildings
+place_in_circle(create_building, count=3, radius=5, center=(0, 0, 5))
+
+#This guy makes a fence round everything
+place_in_circle(create_fence, count=8, radius=12, center=(0, 0, 5))
+
+#This will create the fountain in the midde
+place_in_circle(create_fountain, count=1, radius=1, center=(0, 0, 5))
+
+cmds.viewFit(allObjects=True)
+print("City layout complete.")
