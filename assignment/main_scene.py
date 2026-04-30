@@ -35,24 +35,20 @@ ground = cmds.polyPlane(name="ground", width=60, height=60,
                         subdivisionsX=1, subdivisionsY=1)[0]
 
 # ---------------------------------------------------------------------------
-# TODO: Build your scene below by calling functions from scene_functions.
-#
-# Example calls (uncomment and modify once your functions are implemented):
-#
-#   sf.create_building(width=5, height=10, depth=5, position=(-10, 0, 8))
-#   sf.create_tree(position=(3, 0, -5))
-#   sf.create_fence(length=12, post_count=7, position=(-6, 0, -3))
-#   sf.create_lamp_post(position=(8, 0, 2))
-#
-#   # Place 8 trees in a circle of radius 15:
-#   sf.place_in_circle(sf.create_tree, count=8, radius=15)
-#
-# Remember: call each function at least once, and aim for 15+ objects.
-# ---------------------------------------------------------------------------
+# Placing the fountain exactly in the middle.
+sf.create_fountain(radius=2, position=(0, 0, 0))
 
+# This will create buildings in a circle around the fountain.
+sf.place_in_circle(sf.create_building, count=3, radius=10, center=(0, 0, 0))
 
-# ---------------------------------------------------------------------------
-# Final viewport framing (do not remove).
+# Makes lamps for outside fo the building
+sf.place_in_circle(sf.create_lamp_post, count=6, radius=16, center=(0, 0, 0))
+
+# Creating a forest border on the outside.
+sf.place_in_circle(sf.create_tree, count=12, radius=20, center=(0, 0, 0))
+
+# This places 4 fence sections around the edges of the complex
+sf.place_in_circle(sf.create_fence, count=9, radius=25, center=(0, 0, 0))
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     cmds.viewFit(allObjects=True)
